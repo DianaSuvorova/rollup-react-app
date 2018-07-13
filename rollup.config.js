@@ -6,6 +6,7 @@ import progress from 'rollup-plugin-progress';
 import visualizer from 'rollup-plugin-visualizer';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
+import replace from 'rollup-plugin-replace';
 
 export default {
   input: 'src/index.js',
@@ -13,31 +14,36 @@ export default {
     {
       file: 'dist/index.js',
       format: 'umd',
-      globals: {
-        react: 'React',
-        'react-dom': 'ReactDOM',
-        'styletron-react-core': 'StyletronReactCore',
-      },
       sourcemap: 'inline',
     },
   ],
-  external: ['react', 'react-dom', 'styletron-react-core'],
   plugins: [
     progress(),
     nodeResolve({
       browser: true,
     }),
     json(),
+    commonjs({
+      include: [
+        'node_modules/**',
+      ],
+      exclude: [
+        'node_modules/process-es6/**',
+      ],
+      namedExports: {
+        'node_modules/react/index.js': ['Children', 'Component', 'PropTypes', 'createElement'],
+        'node_modules/react-dom/index.js': ['render'],
+      },
+    }),
     babel({
       babelrc: false,
       presets: [['es2015', { modules: false }], 'stage-1', 'react'],
       plugins: ['external-helpers'],
-      exclude: 'node_modules/**',
     }),
     visualizer(),
     filesize(),
-    commonjs({
-      include: 'node_modules/**',
+    replace({
+      'process.env.NODE_ENV': JSON.stringify('production'),
     }),
   ],
 };
